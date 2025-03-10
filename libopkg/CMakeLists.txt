@@ -1,22 +1,65 @@
-if(STATIC_LIBOPKG)
-    set(LIBRARY_TYPE STATIC)
-else()
-    set(LIBRARY_TYPE SHARED)
-endif()
-
-set(OPTIONAL_FILES
+set(OPTIONAL_SOURCE_FILES
     $<$<BOOL:${WITH_CURL}>:opkg_download_curl.c>
     $<$<NOT:$<BOOL:${WITH_CURL}>>:opkg_download_wget.c>
-    $<$<BOOL:${WITH_GPGME}>:opkg_gpg.c opkg_gpg.h>
-    $<$<BOOL:${WITH_LIBOPKG_API}>:opkg.c opkg.h>
-    $<$<BOOL:${WITH_SHA256}>:sha256.c sha256.h>
-    $<$<BOOL:${USE_SOLVER_INTERNAL}>:solvers/internal/opkg_action.c solvers/internal/opkg_upgrade_internal.c solvers/internal/opkg_solver_internal.c solvers/internal/opkg_install_internal.c solvers/internal/pkg_depends_internal.c solvers/internal/opkg_upgrade_internal.h solvers/internal/opkg_solver_internal.h solvers/internal/opkg_install_internal.h solvers/internal/pkg_depends_internal.h>
+    $<$<BOOL:${WITH_GPGME}>:opkg_gpg.c>
+    $<$<BOOL:${WITH_LIBOPKG_API}>:opkg.c>
+    $<$<BOOL:${WITH_SHA256}>:sha256.c>
+    $<$<BOOL:${USE_SOLVER_INTERNAL}>:solvers/internal/opkg_action.c solvers/internal/opkg_upgrade_internal.c solvers/internal/opkg_solver_internal.c solvers/internal/opkg_install_internal.c solvers/internal/pkg_depends_internal.c>
     $<$<BOOL:${USE_SOLVER_LIBSOLV}>:solvers/libsolv/opkg_solver_libsolv.c>
 )
 
-add_library(libopkg
-    ${LIBRARY_TYPE}
-    ${OPTIONAL_FILES}
+set(OPTIONAL_HEADER_FILES
+    $<$<BOOL:${WITH_GPGME}>:opkg_gpg.h>
+    $<$<BOOL:${WITH_LIBOPKG_API}>:opkg.h>
+    $<$<BOOL:${WITH_SHA256}>:sha256.h>
+    $<$<BOOL:${USE_SOLVER_INTERNAL}>:solvers/internal/opkg_upgrade_internal.h solvers/internal/opkg_solver_internal.h solvers/internal/opkg_install_internal.h solvers/internal/pkg_depends_internal.h>
+)
+
+set(SOURCE_FILES
+    ${OPTIONAL_SOURCE_FILES}
+    cksum_list.c
+    conffile.c
+    conffile_list.c
+    file_list.c
+    file_util.c
+    hash_table.c
+    md5.c
+    nv_pair.c
+    nv_pair_list.c
+    opkg_archive.c
+    opkg_cmd.c
+    opkg_conf.c
+    opkg_configure.c
+    opkg_download.c
+    opkg_install.c
+    opkg_message.c
+    opkg_remove.c
+    opkg_utils.c
+    opkg_verify.c
+    parse_util.c
+    pkg.c
+    pkg_depends.c
+    pkg_dest.c
+    pkg_dest_list.c
+    pkg_extract.c
+    pkg_hash.c
+    pkg_parse.c
+    pkg_src.c
+    pkg_src_list.c
+    pkg_vec.c
+    release.c
+    release_parse.c
+    sprintf_alloc.c
+    str_list.c
+    string_util.c
+    void_list.c
+    xfuncs.c
+    xregex.c
+    xsystem.c
+)
+
+set(HEADER_FILES
+    ${OPTIONAL_HEADER_FILES}
     cksum_list.h
     conffile.h
     conffile_list.h
@@ -58,46 +101,22 @@ add_library(libopkg
     xfuncs.h
     xregex.h
     xsystem.h
-    cksum_list.c
-    conffile.c
-    conffile_list.c
-    file_list.c
-    file_util.c
-    hash_table.c
-    md5.c
-    nv_pair.c
-    nv_pair_list.c
-    opkg_archive.c
-    opkg_cmd.c
-    opkg_conf.c
-    opkg_configure.c
-    opkg_download.c
-    opkg_install.c
-    opkg_message.c
-    opkg_remove.c
-    opkg_utils.c
-    opkg_verify.c
-    parse_util.c
-    pkg.c
-    pkg_depends.c
-    pkg_dest.c
-    pkg_dest_list.c
-    pkg_extract.c
-    pkg_hash.c
-    pkg_parse.c
-    pkg_src.c
-    pkg_src_list.c
-    pkg_vec.c
-    release.c
-    release_parse.c
-    sprintf_alloc.c
-    str_list.c
-    string_util.c
-    void_list.c
-    xfuncs.c
-    xregex.c
-    xsystem.c
 )
+
+if(STATIC_LIBOPKG)
+    set(LIBRARY_TYPE STATIC)
+else()
+    set(LIBRARY_TYPE SHARED)
+endif()
+
+add_library(libopkg
+    ${LIBRARY_TYPE}
+    ${SOURCE_FILES}
+    ${HEADER_FILES}
+)
+message("${HEADER_FILES}")
+message("${SOURCE_FILES}")
+#set_target_properties(libopkg PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
 # avoid double "lib" prefix
 set_target_properties(libopkg PROPERTIES PREFIX "")
@@ -169,6 +188,13 @@ endif()
 target_include_directories(libopkg PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..)
 target_include_directories(libopkg PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-if (NOT STATIC_LIBOPKG)
+if(NOT STATIC_LIBOPKG)
     install(TARGETS libopkg)
+endif()
+
+if(WITH_LIBOPKG_API)
+    # Only install headers if we're building the API
+    install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libopkg)
+        #    install(TARGETS libopkg
+        #        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libopkg)
 endif()
