@@ -171,7 +171,6 @@ static int load_all_keys(gpgme_ctx_t ctx)
 {
     int ret = -1;
     int import_attempts = 0;
-    int import_failures = 0;
     int has_lsctx = 0;
     gpgme_key_t key[2] = {0, 0}; /* gpgme_op_import_keys() only takes NULL-terminated list */
     gpgme_ctx_t lsctx;
@@ -201,14 +200,8 @@ static int load_all_keys(gpgme_ctx_t ctx)
     while(!gpgme_op_keylist_next(lsctx, &key[0])) {
         ++import_attempts;
 
-        err = gpgme_op_import_keys(ctx, key);
-        if (err) {
-            opkg_msg(DEBUG, "gpgme_op_import_keys() failed on keyid=\"%s\" (%d): %s\n",
-                     get_keyid(key[0]),
-                     import_attempts,
-                     gpg_strerror(err));
-            ++import_failures;
-        }
+        opkg_msg(DEBUG, "Found public key: %s \n",
+                 get_keyid(key[0]));
 
         gpgme_key_release(key[0]);
     }
@@ -223,9 +216,9 @@ static int load_all_keys(gpgme_ctx_t ctx)
     ret = 0;
 
  out_err:
-    opkg_msg((import_failures == 0 ? INFO : ERROR),
-             "Found %d keys, %d failed import\n",
-             import_attempts, import_failures);
+    opkg_msg(INFO,
+             "Found %d keys\n",
+             import_attempts);
 
     if (has_lsctx)
         gpgme_release(lsctx);
