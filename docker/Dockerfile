@@ -1,4 +1,6 @@
-FROM debian:12
+ARG DEBIAN_BASE_TAG=stable
+
+FROM debian:${DEBIAN_BASE_TAG}
 
 RUN apt-get clean && \
     apt-get update && \
