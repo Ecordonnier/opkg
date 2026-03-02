@@ -191,6 +191,7 @@ int opkg_conf_load(void);
 int opkg_conf_read(void);
 int opkg_conf_finalize(void);
 void opkg_conf_deinit(void);
+void opkg_conf_append_conf_file(const char *filename);
 
 int opkg_conf_write_status_files(void);
 char *root_filename_alloc(char *filename);

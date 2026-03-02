@@ -975,3 +975,9 @@ void opkg_conf_deinit(void)
         }
     }
 }
+
+void opkg_conf_append_conf_file(const char *filename)
+{
+    opkg_config->conf_files = xrealloc(opkg_config->conf_files, ++opkg_config->conf_file_count * sizeof(char *));
+    opkg_config->conf_files[opkg_config->conf_file_count - 1] = xstrdup(filename);
+}

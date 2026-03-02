@@ -162,8 +162,7 @@ static int args_parse_stage1(int argc, char *argv[])
 
         switch (c) {
         case 'f':
-            opkg_config->conf_files = realloc(opkg_config->conf_files, ++opkg_config->conf_file_count * sizeof(char*));
-            opkg_config->conf_files[opkg_config->conf_file_count - 1] = xstrdup(optarg);
+            opkg_conf_append_conf_file(optarg);
             break;
         case 'o':
             opkg_config->offline_root = xstrdup(optarg);
