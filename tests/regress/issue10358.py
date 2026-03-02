@@ -6,7 +6,7 @@ import opk, cfg, opkgcl
 import re
 vardir=os.environ['VARDIR']
 
-re_half_installed = re.compile('Status: \w+ \w+ half-installed')
+re_half_installed = re.compile(r'Status: \w+ \w+ half-installed')
 
 def is_half_installed(pkg_name):
     status_path = ("{}"+vardir+"/lib/opkg/status").format(cfg.offline_root)
