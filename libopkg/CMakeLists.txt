@@ -135,6 +135,10 @@ add_library(libopkg
 set_target_properties(libopkg PROPERTIES PREFIX "")
 set_target_properties(libopkg PROPERTIES VERSION 1.0.0 SOVERSION 1)
 
+if(CMAKE_C_BYTE_ORDER STREQUAL "BIG_ENDIAN")
+    target_compile_definitions(libopkg PRIVATE WORDS_BIGENDIAN=1)
+endif()
+
 find_package(PkgConfig REQUIRED)
 if(STATIC_LIBOPKG)
     # needed for e.g. FindLibArchive.cmake (used by "find_package(LibArchive...)") which does not yet
