@@ -135,7 +135,7 @@ char *file_readlink_alloc(const char *file_name)
 }
 
 /* read a single line from a file, stopping at a newline or EOF.
-   If a newline is read, it will appear in the resulting string.
+   If a newline is read, it is removed from the resulting string.
    Return value is a malloc'ed char * which should be freed at
    some point by the caller.
 
@@ -143,7 +143,7 @@ char *file_readlink_alloc(const char *file_name)
 */
 char *file_read_line_alloc(FILE * fp)
 {
-    size_t buf_len, line_size;
+    size_t buf_len, line_size = 0;
     char buf[BUFSIZ];
     char *line = NULL;
     int got_nl = 0;
@@ -155,13 +155,13 @@ char *file_read_line_alloc(FILE * fp)
             buf[buf_len] = '\0';
             got_nl = 1;
         }
-        if (line) {
+        if (!line) {
+            line_size = buf_len;
+            line = xstrdup(buf);
+        } else {
             line_size += buf_len;
             line = xrealloc(line, line_size + 1);
-            strncat(line, buf, line_size);
-        } else {
-            line_size = buf_len + 1;
-            line = xstrdup(buf);
+            memcpy(line + (line_size - buf_len), buf, buf_len + 1);
         }
         if (got_nl)
             break;
