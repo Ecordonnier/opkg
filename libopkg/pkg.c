@@ -1453,6 +1453,7 @@ void pkg_info_preinstall_check(void)
 struct pkg_write_filelist_data {
     pkg_t *pkg;
     FILE *stream;
+    size_t count;
 };
 
 static void pkg_write_filelist_helper(const char *key, void *entry_,
@@ -1495,10 +1496,70 @@ static void pkg_write_filelist_helper(const char *key, void *entry_,
         else
             fprintf(data->stream, "%s\n", entry);
 
+        data->count++;
+
         free(entry);
         free(link_target);
         free(installed_file_name);
     }
+}
+
+static int pkg_write_filelist_compare(const void *a, const void *b)
+{
+    const char *const *sa = (const char *const *)a;
+    const char *const *sb = (const char *const *)b;
+    return strcmp(*sa, *sb);
+}
+
+static void pkg_write_filelist_sorter(void *data_)
+{
+    struct pkg_write_filelist_data *data = data_;
+
+    if (data == NULL || data->stream == NULL || data->count == 0) {
+        return;
+    }
+
+    fflush(data->stream);
+    rewind(data->stream);
+
+    char **lines = malloc(data->count * sizeof(char *));
+    if (lines == NULL) {
+        return;
+    }
+
+    char *line;
+    size_t count = 0;
+
+    while ((line = file_read_line_alloc(data->stream))) {
+        lines[count] = line;
+        count++;
+        if (count >= data->count) {
+            break;
+        }
+    }
+
+    if (count > 1) {
+        qsort(lines, count, sizeof(char *), pkg_write_filelist_compare);
+    }
+
+    int fd = fileno(data->stream);
+    if (ftruncate(fd, 0) != 0) {
+        for (size_t i = 0; i < count; i++) {
+            free(lines[i]);
+        }
+        free(lines);
+        return;
+    }
+    rewind(data->stream);
+
+    for (size_t i = 0; i < count; i++) {
+        fputs(lines[i], data->stream);
+        /* Append a newline since file_read_line_alloc removes it */
+        fputc('\n', data->stream);
+        free(lines[i]);
+    }
+
+    free(lines);
 }
 
 int pkg_write_filelist(pkg_t * pkg)
@@ -1511,7 +1572,7 @@ int pkg_write_filelist(pkg_t * pkg)
 
     opkg_msg(INFO, "Creating %s file for pkg %s.\n", list_file_name, pkg->name);
 
-    data.stream = fopen(list_file_name, "w");
+    data.stream = fopen(list_file_name, "w+");
     if (!data.stream) {
         opkg_perror(ERROR, "Failed to open %s", list_file_name);
         free(list_file_name);
@@ -1519,8 +1580,10 @@ int pkg_write_filelist(pkg_t * pkg)
     }
 
     data.pkg = pkg;
+    data.count = 0;
     hash_table_foreach(&opkg_config->file_hash, pkg_write_filelist_helper,
                        &data);
+    pkg_write_filelist_sorter(&data);
     fclose(data.stream);
     free(list_file_name);
 
