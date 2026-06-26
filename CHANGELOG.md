@@ -8,6 +8,35 @@ For a historic list of changes from when the project was called "Ipkg", see the 
 ## [Unreleased]
 
 
+## [0.10.0] - 2026-06-26
+
+Semiannual opkg release.
+
+This release bumps the minor version due to the name and default value changes to CMake variables, which might affect builders.
+
+Note also that the IPK filelist is now sorted before output.
+It was previously non-deterministic, so this should not be a breaking change.
+
+
+### Added
+
+- Added a new public function to libopkg - ``opkg_conf_append_conf_file()`` - which will add new opkg conf file paths to the configuration stack.
+
+
+### Changed
+
+- The ``USE_ACL`` (ACL support) CMake variable has been renamed to ``WITH_ACL`` for consistency, and it now defaults to ``OFF``.
+- The ``USE_XATTR`` (xattr support) CMake variable now defaults to ``OFF``.
+- Libopkg now sorts the package filelist alphanumerically before output, instead of being non-deterministic.
+
+
+### Fixed
+
+- Fixed a variable spelling issue that kept the CMake config from being able to build opkg with zstd support.
+- Fixed a bug in the GPG module where some systems would report an error loading GPG keys, due to the GPG keyring being improperly passed back into the load_all_keys() function.
+- Fixed opkg compilation on Big-Endian architectures.
+
+
 ## [0.9.0] - 2025-06-27
 
 Semiannual opkg release.
