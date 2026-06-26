@@ -51,7 +51,10 @@ To carry out the steps in this section, you must have:
 
 1. Update the [CHANGELOG](CHANGELOG.md) with a summary of the notable changes since the prior release.
 
-2. Based on the changes, set the version for the release in the `configure.ac` file. Bump the version numbers according to the Version Policy above. Commit the release version.
+2. Based on the changes, set the version for the release in the `:CMakeLists.txt` file.
+	1. Bump the version numbers according to the Version Policy above.
+	1. Comment-out the lines which append the ``+git`` suffix to the version.
+	1. Commit the results.
 
 3. Create the release artifacts using the `:scripts/make-dist.sh` script.
 	```bash
@@ -62,12 +65,12 @@ To carry out the steps in this section, you must have:
 
 4. (Optional) Test the dist build in an OpenEmbedded-Core build.
 
-5. Tag and sign the release commit with the `${VERSION}` string.
+5. Tag and sign the release commit with the version string. Include the changelog for this release in the tag summary.
 	```bash
-	git tag --sign --local-user=${GPG_KEY_ID} -m "Opkg release $VERSION" v${VERSION}
+	git tag --sign --local-user=${GPG_KEY_ID} v${VERSION}
 	```
 
-6. Add the "`+git`" suffix to the version string in the `AC_INIT()` call in [`configure.ac`](configure.ac), to support next-cycle's development.
+6. Uncomment the ``+git`` suffix lines in the ``:CMakeLists.txt`` file, to support next-cycle's development. Commit the results.
 
 7. Push the `:dist/` artifacts to the yocto download server using SSH.
 	```bash
