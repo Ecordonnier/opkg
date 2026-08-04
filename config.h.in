@@ -5,6 +5,8 @@
 #cmakedefine01 WITH_ZSTD
 #cmakedefine01 WITH_CURL
 #cmakedefine01 WITH_SSLCURL
+#cmakedefine01 WITH_SHA256
+#cmakedefine01 WITH_MD5
 #cmakedefine01 WITH_ACL
 #cmakedefine01 USE_XATTR
 #cmakedefine01 USE_SOLVER_LIBSOLV

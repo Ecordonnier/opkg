@@ -100,6 +100,7 @@ static int release_get_size(release_t * release, const char *pathname)
     return -1;
 }
 
+#if WITH_MD5
 static const char *release_get_md5(release_t * release, const char *pathname)
 {
     const cksum_t *cksum;
@@ -111,6 +112,7 @@ static const char *release_get_md5(release_t * release, const char *pathname)
 
     return '\0';
 }
+#endif
 
 #if WITH_SHA256
 static const char *release_get_sha256(release_t * release, const char *pathname)
@@ -130,8 +132,10 @@ int release_verify_file(release_t * release, const char *file_name,
                         const char *pathname)
 {
     struct stat f_info;
+#if WITH_MD5
     char *f_md5 = NULL;
     const char *md5 = release_get_md5(release, pathname);
+#endif
 #if WITH_SHA256
     char *f_sha256 = NULL;
     const char *sha256 = release_get_sha256(release, pathname);
@@ -146,11 +150,14 @@ int release_verify_file(release_t * release, const char *file_name,
         ret = 1;
     } else {
 
+#if WITH_MD5
         f_md5 = file_md5sum_alloc(file_name);
+#endif
 #if WITH_SHA256
         f_sha256 = file_sha256sum_alloc(file_name);
 #endif
 
+#if WITH_MD5
         if (md5 && strcmp(md5, f_md5)) {
             opkg_msg(ERROR, "MD5 verification failed for %s - %s.\n",
                      release->name, pathname);
@@ -162,10 +169,19 @@ int release_verify_file(release_t * release, const char *file_name,
             ret = 1;
 #endif
         }
+#elif WITH_SHA256
+        if (sha256 && strcmp(sha256, f_sha256)) {
+            opkg_msg(ERROR, "SHA256 verification failed for %s - %s.\n",
+                     release->name, pathname);
+            ret = 1;
+        }
+#endif
 
     }
 
+#if WITH_MD5
     free(f_md5);
+#endif
 #if WITH_SHA256
     free(f_sha256);
 #endif

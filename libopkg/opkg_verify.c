@@ -43,6 +43,7 @@ int opkg_verify_gpg_signature(const char *file, const char *sigfile)
 
 int opkg_verify_md5sum(const char *file, const char *md5sum)
 {
+#if WITH_MD5
     int r;
     char *file_md5sum;
 
@@ -57,6 +58,12 @@ int opkg_verify_md5sum(const char *file, const char *md5sum)
     free(file_md5sum);
 
     return r;
+#else
+    (void)md5sum;
+
+    opkg_msg(INFO, "Ignoring md5sum for file '%s'\n", file);
+    return 0;
+#endif
 }
 
 int opkg_verify_sha256sum(const char *file, const char *sha256sum)

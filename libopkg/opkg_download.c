@@ -33,13 +33,17 @@
 #include "opkg_utils.h"
 #include "pkg_depends.h"
 
+#if WITH_MD5
 #include "md5.h"
+#elif WITH_SHA256
+#include "sha256.h"
+#endif
 #include "sprintf_alloc.h"
 #include "file_util.h"
 #include "xfuncs.h"
 
 /* Limit the short file name used to generate cache file names to 90 characters
- * so that when added to the md5sum (32 characters) and an underscore, the
+ * so that when added to the checksum hex string and an underscore, the
  * resulting length is below 128 characters. The maximum file name length
  * differs between plaforms but 128 characters should be reasonable.
  */
@@ -154,16 +158,27 @@ static int opkg_download_internal(const char *src, const char *dest,
  */
 static char *get_cache_location(const char *src)
 {
-    unsigned char md5sum_bin[16];
-    char *md5sum_hex;
+#if WITH_MD5
+    unsigned char sum_bin[16];
+#elif WITH_SHA256
+    unsigned char sum_bin[32];
+#else
+#error "Either WITH_MD5 or WITH_SHA256 must be enabled"
+#endif
+    char *sum_hex;
     char *cache_location;
     char *short_file_name;
     char *tmp = xstrdup(src);
 
-    md5_buffer(src, strlen(src), md5sum_bin);
-    md5sum_hex = md5_to_string(md5sum_bin);
+#if WITH_MD5
+    md5_buffer(src, strlen(src), sum_bin);
+    sum_hex = md5_to_string(sum_bin);
+#elif WITH_SHA256
+    sha256_buffer(src, strlen(src), sum_bin);
+    sum_hex = sha256_to_string(sum_bin);
+#endif
 
-    /* Generate a short file name which will be used along with an md5sum of the
+    /* Generate a short file name which will be used along with a checksum of the
      * full src URI in the cache file name. This short file name is limited to
      * MAX_SHORT_FILE_NAME_LENGTH to ensure that the total cache file name
      * length is reasonable.
@@ -173,8 +188,8 @@ static char *get_cache_location(const char *src)
         short_file_name[MAX_SHORT_FILE_NAME_LENGTH] = '\0';
 
     sprintf_alloc(&cache_location, "%s/%s_%s", opkg_config->cache_dir,
-                  md5sum_hex, short_file_name);
-    free(md5sum_hex);
+                  sum_hex, short_file_name);
+    free(sum_hex);
     free(tmp);
     return cache_location;
 }

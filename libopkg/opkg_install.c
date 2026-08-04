@@ -842,10 +842,12 @@ static int resolve_conffiles(pkg_t * pkg)
         cf = (conffile_t *) iter->data;
         root_filename = root_filename_alloc(cf->name);
 
+#if WITH_MD5
         /* Might need to initialize the md5sum for each conffile */
         if (cf->value == NULL) {
             cf->value = file_md5sum_alloc(root_filename);
         }
+#endif
 
         if (!file_exists(root_filename)) {
             free(root_filename);
@@ -855,9 +857,17 @@ static int resolve_conffiles(pkg_t * pkg)
         cf_backup = backup_filename_alloc(root_filename);
 
         if (file_exists(cf_backup)) {
+            int differs;
+#if WITH_MD5
             /* Let's compute md5 to test if files are changed */
             md5sum = file_md5sum_alloc(cf_backup);
-            if (md5sum && cf->value && strcmp(cf->value, md5sum) != 0) {
+            differs = md5sum && cf->value && strcmp(cf->value, md5sum) != 0;
+#else
+            /* No md5 support: conservatively assume the conffile differs. */
+            md5sum = NULL;
+            differs = 1;
+#endif
+            if (differs) {
                 if (opkg_config->force_maintainer) {
                     opkg_msg(NOTICE,
                              "Conffile %s using maintainer's setting.\n",

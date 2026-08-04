@@ -59,12 +59,19 @@ int conffile_has_been_modified(conffile_t * conffile)
         return 1;
     }
 
+#if WITH_MD5
     md5sum = file_md5sum_alloc(root_filename);
 
     if (md5sum && (ret = strcmp(md5sum, conffile->value))) {
         opkg_msg(INFO, "Conffile %s:\n\told md5=%s\n\tnew md5=%s\n",
                  conffile->name, md5sum, conffile->value);
     }
+#else
+    /* No md5 support: conservatively assume the conffile was modified. */
+    md5sum = NULL;
+    opkg_msg(NOTICE, "Conffile %s: md5 support disabled, assuming modified.\n",
+             conffile->name);
+#endif
 
     free(root_filename);
     if (md5sum)

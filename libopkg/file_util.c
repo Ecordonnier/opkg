@@ -35,8 +35,11 @@
 #include "opkg_archive.h"
 #include "sprintf_alloc.h"
 #include "file_util.h"
-#include "md5.h"
 #include "xfuncs.h"
+
+#if WITH_MD5
+#include "md5.h"
+#endif
 
 #if WITH_SHA256
 #include "sha256.h"
@@ -391,6 +394,7 @@ int file_mkdir_hier(const char *path, long mode)
     return 0;
 }
 
+#if WITH_MD5
 char *file_md5sum_alloc(const char *file_name)
 {
     int err;
@@ -414,6 +418,7 @@ char *file_md5sum_alloc(const char *file_name)
 
     return md5_to_string(md5sum_bin);
 }
+#endif
 
 #if WITH_SHA256
 char *file_sha256sum_alloc(const char *file_name)

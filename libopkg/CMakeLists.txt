@@ -12,7 +12,6 @@ set(HEADER_FILES
     file_util.h
     hash_table.h
     list.h
-    md5.h
     nv_pair.h
     nv_pair_list.h
     opkg_archive.h
@@ -63,6 +62,10 @@ if(WITH_SHA256)
     list(APPEND HEADER_FILES sha256.h)
 endif()
 
+if(WITH_MD5)
+    list(APPEND HEADER_FILES md5.h)
+endif()
+
 if(USE_SOLVER_INTERNAL)
     list(APPEND HEADER_FILES
         solvers/internal/opkg_upgrade_internal.h
@@ -78,6 +81,7 @@ set(OPTIONAL_SOURCE_FILES
     $<$<BOOL:${WITH_GPGME}>:opkg_gpg.c>
     $<$<BOOL:${WITH_LIBOPKG_API}>:opkg.c>
     $<$<BOOL:${WITH_SHA256}>:sha256.c>
+    $<$<BOOL:${WITH_MD5}>:md5.c>
     $<$<BOOL:${USE_SOLVER_INTERNAL}>:solvers/internal/opkg_action.c solvers/internal/opkg_upgrade_internal.c solvers/internal/opkg_solver_internal.c solvers/internal/opkg_install_internal.c solvers/internal/pkg_depends_internal.c>
     $<$<BOOL:${USE_SOLVER_LIBSOLV}>:solvers/libsolv/opkg_solver_libsolv.c>
 )
@@ -90,7 +94,6 @@ set(SOURCE_FILES
     file_list.c
     file_util.c
     hash_table.c
-    md5.c
     nv_pair.c
     nv_pair_list.c
     opkg_archive.c

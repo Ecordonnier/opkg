@@ -553,6 +553,7 @@ static int opkg_find_cmd(int argc, char **argv)
 
 static int opkg_verify_cmd(int argc, char **argv)
 {
+#if WITH_MD5
     unsigned int i;
     pkg_vec_t *available;
     pkg_t *pkg;
@@ -617,7 +618,13 @@ static int opkg_verify_cmd(int argc, char **argv)
     pkg_vec_free(available);
 
     return 0;
+#else
+    (void)argc;
+    (void)argv;
 
+    opkg_msg(ERROR, "md5 support is disabled, 'verify' is unsupported.\n");
+    return -1;
+#endif
 }
 
 static int opkg_list_installed_cmd(int argc, char **argv)
